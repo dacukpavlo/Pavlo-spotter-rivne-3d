@@ -4,3 +4,8 @@
 /* Put the playable 3D viewport before lengthy route lists on tablets and phones. */
 @media(max-width:1060px){.layout{display:flex;flex-direction:column}.sidebar{display:contents}.chooser{order:0}.stage{order:1}.stats{order:2}.route-panel{order:3}.photo-panel{order:4}}
 @media(max-width:470px){.gameframe{height:66vh;min-height:480px}}
+
+/* Версія 4.0: елементи керування заправкою */
+#fuelBtn:not(:disabled){background:linear-gradient(145deg,#355c69,#23414f);border-color:#60a6b0}
+#fuelBtn:disabled{opacity:.45;cursor:not-allowed}
+#fuelBadge{color:#b9f8c9;border-color:#60b990}

@@ -158,6 +158,21 @@ function generateCity(engine,count,weather){if(engine.soft)return{p:null,c:null,
     g.line([x,.05,z],[x,7.5,z],.13,[.40,.47,.46]);g.line([x,7.5,z],[routeX(z)+2,7.5,z],.045,[.23,.29,.32]);
     g.line([routeX(z)+2,7.5,z],[routeX(z)+2,6.9,z],.035,[.16,.20,.21]);
   }
+  // АЗС на маршруті 38/38А: декорації реальної зупинки для заправки (не GPS).
+  for(const stationIndex of [5, 13]){
+    const z=stationIndex*STEP+48,x=routeX(z)+31.5;
+    g.box(x,.12,z,24,.23,28,[.51,.52,.51]);
+    for(const dx of [-8,8])for(const dz of [-10,10])g.box(x+dx,3.2,z+dz,.42,6.3,.42,[.82,.86,.86]);
+    g.box(x,6.43,z,22,.62,25,[.18,.51,.54]);
+    g.box(x,6.86,z,22,.12,25,[.92,.96,.96]);
+    for(const dz of [-5,5]){
+      g.box(x-3,1.3,z+dz,1.55,2.55,1.2,[.86,.88,.85]);
+      g.box(x-3,1.78,z+dz,1.57,.62,1.25,[.09,.35,.41]);
+      g.line([x-3,1.5,z+dz],[x-1.9,.65,z+dz+.55],.035,[.16,.16,.15]);
+    }
+    g.box(x+7,4.55,z-11,2.5,3.65,.45,[.12,.39,.41]);
+    g.box(x+7,4.88,z-11.33,2.1,.64,.09,[.89,.94,.93]);
+  }
   return engine.upload(g);
 }
 function nightWindow(r){return r()<.2?[.96,.77,.37]:[.27+r()*.10,.40+r()*.09,.46+r()*.05]}
@@ -184,6 +199,36 @@ function makeVehicle(engine,kind){const isT=kind==='trolley',len=isT?11.7:8.5,w=
   ext.box(0,1.85,len/2+.10,w-.24,.07,.08,[.08,.12,.14]);
   for(const s of [-1,1]){ext.box(s*.90,.98,len/2+.06,.30,.26,.10,isT?[.89,.84,.65]:[.92,.91,.77]);ext.box(s*1.03,1.22,-len/2-.06,.23,.31,.10,[.80,.15,.09]);}
   ext.box(0,.56,len/2+.10,1.12,.19,.09,isT?[.23,.25,.28]:[.94,.72,.12]);
+  // Машини 107 і 38: відтворюємо форму передньої маски, бампери,
+  // дзеркала, лобове скло, смуги, вентиляцію і круглі фари за фотографіями.
+  const front=len/2+.16;
+  ext.box(0,1.25,front,w-.10,.38,.09,isT?[.93,.93,.86]:[.94,.72,.09]);
+  ext.box(0,.69,front+.08,w-.25,.20,.16,isT?[.15,.18,.23]:[.13,.15,.18]);
+  ext.box(0,.97,front+.10,isT?1.28:1.48,.24,.08,[.10,.13,.17]);
+  ext.box(0,2.53,front+.13,w-.40,.10,.05,[.09,.11,.14]);
+  ext.box(0,2.21,front+.14,.045,1.04,.04,[.11,.15,.18]);
+  ext.line([-w*.38,1.96,front+.20],[.13,2.12,front+.21],.026,[.16,.18,.18]);
+  for(const sx of [-1,1]){
+    const lx=sx*(w*.40);
+    ext.box(lx,1.18,front+.13,.56,.55,.08,isT?[.22,.26,.28]:[.13,.17,.22]);
+    for(let k=0;k<(isT?2:3);k++){
+      const offset=isT?(-.115+k*.23):(-.18+k*.18);
+      ext.box(lx+offset,1.13+(k%2)*.12,front+.21,.13,.13,.042,[.88,.91,.82]);
+    }
+    ext.box(sx*(w/2+.28),2.15,front-.68,.56,.13,.15,[.10,.12,.14]);
+    ext.box(sx*(w/2+.50),2.12,front-.62,.23,.45,.12,[.09,.13,.16]);
+  }
+  if(isT){
+    // синя нижня смуга, розділені бокові вікна, дахове обладнання
+    ext.box(0,.71,-.02,w+.09,.43,len-.24,[.08,.22,.57]);
+    ext.box(0,2.98,-1.8,1.8,.28,2.7,[.60,.63,.60]);
+    ext.box(0,3.25,-1.8,1.1,.23,1.8,[.30,.36,.37]);
+  } else {
+    ext.box(0,1.78,front+.20,1.42,.22,.05,[.10,.13,.16]);
+    ext.box(0,2.98,.04,1.28,.17,2.20,[.78,.57,.12]);
+    // чорна пластикова маска характерної жовтої маршрутки
+    for(const sx of [-1,1]) ext.box(sx*.89,.84,front+.20,.47,.55,.06,[.14,.18,.23]);
+  }
   // trolley poles, separate to animate and toggle
   const poleUp=new Geometry(),poleDown=new Geometry();
   if(isT){for(let s of [-.55,.55]){
@@ -269,7 +314,7 @@ class Synth {
   ticket(){this.tone(1250,.09,'sine',.08);setTimeout(()=>this.tone(1460,.11,'sine',.07),100);}
 }
 
-const game={kind:'trolley',direction:'forward',weather:'sun',daytime:'day',camera:'driver',running:false,paused:false,speed:0,s:0,lateral:0,steering:0,doors:false,poles:true,atStop:0,people:0,tickets:0,money:0,boarded:new Set(),announced:new Set(),total:0,vehicle:null,city:null,traffic:[],scene:null,engine:null,last:0,speech:true,raf:0,particles:[],weatherCanvas:null,wctx:null,stoppedAtEnd:false,passengerMesh:null};
+const game={kind:'trolley',direction:'forward',weather:'sun',daytime:'day',camera:'driver',running:false,paused:false,speed:0,s:0,lateral:0,steering:0,doors:false,poles:true,atStop:0,people:0,tickets:0,money:0,boarded:new Set(),announced:new Set(),total:0,vehicle:null,city:null,traffic:[],scene:null,engine:null,last:0,speech:true,raf:0,particles:[],weatherCanvas:null,wctx:null,stoppedAtEnd:false,passengerMesh:null,fuel:80,tank:80,contact:true,contactTimer:0};
 const sound=new Synth();
 let messageTimeout=0;
 function configStops(){const names=STOP_NAMES[game.kind],back=game.direction==='backward';return back?[...names].reverse():[...names];}
@@ -287,6 +332,7 @@ function setVehicle(kind){game.kind=kind;document.querySelectorAll('[data-vehicl
   $('photoMain').src=kind==='trolley'?'assets/trolley-107-exterior.jpg':'assets/marshrutka-38-front.jpg';
   $('photoInterior').src=kind==='trolley'?'assets/trolley-107-interior.jpg':'assets/marshrutka-38-interior.jpg';
   $('poleBtn').disabled=kind!=='trolley';$('poleBadge').textContent=kind==='trolley'?'⚡ Штанги піднято':'⛽ Дизельний двигун';
+  $('fuelBtn').disabled=kind!=='bus';$('fuelBadge').textContent=kind==='bus'?'⛽ Пальне: '+game.fuel.toFixed(1)+' / '+game.tank+' л':'⚡ Живлення від дротів';
   game.total=STOP_NAMES[kind].length;game.atStop=0;game.boarded.clear();game.direction=$('direction').value;drawStopList();gpsHint();
 }
 function cameraView(){const dz=driverDirection(),yaw=Math.atan2((routeX(game.s+dz*.4)-routeX(game.s))*dz,.4)+ (dz===1?0:Math.PI);
@@ -305,6 +351,7 @@ function renderMini(){const cv=$('mini'),c=cv.getContext('2d'),W=cv.width,H=cv.h
   const point=z=>[cx+routeX(z)*xscale, H-12-(z+45)*yscale];
   c.strokeStyle='#9caeb2';c.lineWidth=16;c.lineCap='round';c.beginPath();for(let z=0;z<=max;z+=8){const [x,y]=point(z);if(z===0)c.moveTo(x,y);else c.lineTo(x,y)}c.stroke();
   c.strokeStyle='#4e5d66';c.lineWidth=10;c.stroke();c.setLineDash([4,4]);c.strokeStyle='#e4d9a5';c.lineWidth=1;c.stroke();c.setLineDash([]);
+  if(game.kind==='bus'){for(const zi of [5*STEP+48,13*STEP+48]){const [xx,yy]=point(zi);c.fillStyle='#eafabd';c.font='bold 16px system-ui';c.fillText('⛽',xx+11,yy+5);}}
   for(let i=0;i<n;i++){const [x,y]=point(i*STEP);c.fillStyle='#e6f2f2';c.beginPath();c.arc(x,y,2.4,0,Math.PI*2);c.fill()}
   const [tx,ty]=point(zAt(game.atStop));c.beginPath();c.arc(tx,ty,5,0,Math.PI*2);c.strokeStyle='#befa7d';c.lineWidth=2;c.stroke();
   const [vx,vy]=point(game.s);c.beginPath();c.arc(vx,vy,5,0,Math.PI*2);c.fillStyle=game.kind==='trolley'?'#69beff':'#ffce48';c.fill();c.strokeStyle='#17262d';c.stroke();
@@ -315,7 +362,7 @@ function rebuild(){if(!game.engine)return;const e=game.engine;e.remove(game.city
   if(game.vehicle){for(const key of ['mesh','cab','up','down','doorUp','doorDown'])e.remove(game.vehicle[key]);}
   game.vehicle=makeVehicle(e,game.kind);e.remove(game.passengerMesh);game.passengerMesh=makeCabPassengers(e,game.kind,game.people||0,game.vehicle.len);
 }
-function start(){sound.start();updateOptionsFromUI();rebuild();game.running=true;game.paused=false;game.s=zAt(0);game.lateral=0;game.speed=0;game.steering=0;game.doors=false;game.poles=true;game.people=0;game.tickets=0;game.money=0;game.stoppedAtEnd=false;game.announced.clear();game.boarded.clear();game.atStop=0;game.last=performance.now();game.weatherTime=0;
+function start(){sound.start();updateOptionsFromUI();rebuild();game.running=true;game.paused=false;game.s=zAt(0);game.lateral=0;game.speed=0;game.steering=0;game.doors=false;game.poles=true;game.people=0;game.tickets=0;game.money=0;game.stoppedAtEnd=false;game.fuel=game.kind==='bus'?14:80;game.contact=true;game.contactTimer=0;game.announced.clear();game.boarded.clear();game.atStop=0;game.last=performance.now();game.weatherTime=0;
   $('landing').style.display='none';$('start').textContent='↺ НОВИЙ РЕЙС';$('pauseBtn').innerHTML='⏸<small>Пауза [P]</small>';
   displayStats();drawStopList();updateButtons();gpsHint(); if(game.engine){game.engine.remove(game.passengerMesh);game.passengerMesh=makeCabPassengers(game.engine,game.kind,0,game.vehicle.len);}
   status('Ти на початковій. Відкрий двері [O] і посади пасажирів [E].','good');
@@ -323,7 +370,7 @@ function start(){sound.start();updateOptionsFromUI();rebuild();game.running=true
 }
 function toggleDoor(){if(!game.running){status('Спочатку почни рейс.','warn');return;}if(Math.abs(game.speed)>2.2){status('Двері можна відкривати тільки після повної зупинки!','warn');sound.tone(280,.2);return;}
   sound.doors();game.doors=!game.doors;updateButtons();status(game.doors?'Двері відкриті. Можна виконувати посадку.':'Двері зачинилися. Можеш вирушати.','good');}
-function updateButtons(){$('doorBadge').textContent=game.doors?'🚪 Двері відчинені':'🚪 Двері зачинені';$('poleBadge').textContent=game.kind==='trolley'?(game.poles?'⚡ Штанги піднято':'⚠️ Штанги опущено'):'⛽ Дизельний двигун';}
+function updateButtons(){$('fuelBadge').textContent=game.kind==='bus'?'⛽ Пальне: '+game.fuel.toFixed(1)+' / '+game.tank+' л':'⚡ Живлення від дротів';$('doorBadge').textContent=game.doors?'🚪 Двері відчинені':'🚪 Двері зачинені';$('poleBadge').textContent=game.kind==='trolley'?(game.poles?'⚡ Штанги піднято':'⚠️ Штанги опущено'):'⛽ Дизельний двигун';}
 function board(){if(!game.running){status('Спочатку почни рейс.','warn');return;}
   if(game.boarded.has(game.atStop)){status('Посадку на цій зупинці вже виконано. Рухайся далі.','warn');return;}
   if(!game.doors){status('Відкрий двері [O], щоб прийняти пасажирів.','warn');return;}
@@ -339,16 +386,32 @@ function ticket(){if(!game.running){status('Спочатку почни рейс
   if(Math.abs(game.speed)>4) {status('Продавай квитки лише під час зупинки, для безпеки.','warn');return;}
   game.tickets++;game.money+=game.kind==='trolley'?12:18;sound.ticket();displayStats();status('🎫 Квиток видано! +'+(game.kind==='trolley'?12:18)+' ₴ (ігровий тариф).','good');}
 function togglePoles(){if(game.kind!=='trolley')return;if(Math.abs(game.speed)>1){status('Штанги можна перемикати лише стоячи.','warn');return;}game.poles=!game.poles;sound.poles();updateButtons();status(game.poles?'Штанги піднято. Електромережу підключено.':'Штанги опущено. Рух заборонено.','good');}
+function stationDistance(){const zs=[5*STEP+48,13*STEP+48];return Math.min(...zs.map(z=>Math.abs(game.s-z)));}
+function refuel(){
+  if(!game.running||game.kind!=='bus'){status('Заправка потрібна тільки маршрутці під час рейсу.','warn');return;}
+  if(Math.abs(game.speed)>1){status('Спочатку повністю зупини маршрутку перед АЗС.','warn');return;}
+  if(stationDistance()>55){status('Під’їдь до АЗС. Вона позначена на мінікарті як ⛽.','warn');return;}
+  const litres=game.tank-game.fuel;if(litres<1){status('Бак уже повний.','good');return;}
+  game.fuel=game.tank;sound.tone(380,.27,'triangle',.10);updateButtons();
+  status(`⛽ Заправлено ${litres.toFixed(1)} л дизпального. Можеш продовжити рейс.`,'good');
+}
 function togglePause(){if(!game.running)return;game.paused=!game.paused;game.last=performance.now();if(game.paused)sound.motor(0,game.kind==='bus',false,true);$('pauseBtn').innerHTML=game.paused?'▶<small>Продовжити</small>':'⏸<small>Пауза [P]</small>';status(game.paused?'⏸ Пауза. Натисни P для продовження.':'Гру продовжено.','good');}
 const keys={gas:false,brake:false,left:false,right:false};
 function simulate(dt){if(!game.running||game.paused)return;
   const direction=driverDirection(),max=game.kind==='trolley'?55:65;
-  if(game.doors||(!game.poles&&game.kind==='trolley')||game.stoppedAtEnd){game.speed=Math.sign(game.speed)*Math.max(0,Math.abs(game.speed)-dt*10);}
+  if(game.doors||(!game.poles&&game.kind==='trolley')||(game.kind==='bus'&&game.fuel<=0)||game.stoppedAtEnd){game.speed=Math.sign(game.speed)*Math.max(0,Math.abs(game.speed)-dt*10);}
   else if(keys.gas){game.speed=clamp(game.speed+dt*(game.kind==='bus'?11:9),-16,max);}
   else if(keys.brake){game.speed=Math.max(-16,game.speed-dt*(game.speed>0?23:8.5));}
   else{game.speed=Math.sign(game.speed)*Math.max(0,Math.abs(game.speed)-dt*4.5);}
   let steer=(keys.right?1:0)-(keys.left?1:0);game.steering=mix(game.steering,steer,.13);game.lateral=clamp(game.lateral+game.steering*dt*(1+game.speed/25),-2.1,2.1);
   const dz=game.speed/3.6*dt*direction;
+  if(game.kind==='bus'&&game.fuel>0){game.fuel=clamp(game.fuel-Math.abs(dz)*.0060-(keys.gas?dt*.001:0),0,game.tank);$('fuelBadge').textContent='⛽ Пальне: '+game.fuel.toFixed(1)+' / '+game.tank+' л';if(game.fuel<=0&&game.speed<1){status('⛽ Закінчилося пальне! Біля АЗС натисни F.','warn');}}
+  if(game.kind==='trolley'){
+    game.contactTimer=game.contactTimer||0;
+    if(Math.abs(game.lateral)>1.94&&Math.abs(game.speed)>12){game.contactTimer+=dt;if(game.contactTimer>2&&game.poles){game.poles=false;game.contact=false;sound.poles();updateButtons();status('⚡ Штанги зійшли з контактної мережі. Зупинися та підніми їх [R].','warn');}}
+    else game.contactTimer=0;
+  }
+
   game.s=clamp(game.s+dz,0,(game.total-1)*STEP);
   const remaining=Math.abs(game.s-zAt(game.atStop));
   if(!game.boarded.has(game.atStop)&&remaining<105&&!game.announced.has(game.atStop)){
@@ -402,7 +465,7 @@ $('daytime').addEventListener('change',()=>game.daytime=$('daytime').value);
 $('start').addEventListener('click',start);$('heroStart').addEventListener('click',start);
 $('doorBtn').addEventListener('click',toggleDoor);$('boardBtn').addEventListener('click',board);$('ticketBtn').addEventListener('click',ticket);
 $('hornBtn').addEventListener('click',()=>{sound.start();sound.horn();status('Сигнал увімкнено.','good')});
-$('poleBtn').addEventListener('click',togglePoles);$('pauseBtn').addEventListener('click',togglePause);
+$('poleBtn').addEventListener('click',togglePoles);$('fuelBtn').addEventListener('click',refuel);$('pauseBtn').addEventListener('click',togglePause);
 $('helpBtn').addEventListener('click',()=>$('help').showModal());$('closeHelp').addEventListener('click',()=>$('help').close());
 $('fullBtn').addEventListener('click',()=>{if(document.fullscreenElement)document.exitFullscreen();else $('frame').requestFullscreen?.()});
 const codeKeys={KeyW:'gas',ArrowUp:'gas',KeyS:'brake',ArrowDown:'brake',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
@@ -410,7 +473,7 @@ const cameraModes=['driver','chase','side','cabin'];
 window.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName||''))return;
   const key=codeKeys[e.code];if(key){e.preventDefault();keys[key]=true;}
   if(e.repeat||e.ctrlKey||e.metaKey)return;
-  switch(e.code){case 'KeyO':toggleDoor();break;case 'KeyE':board();break;case 'KeyT':ticket();break;case 'KeyR':togglePoles();break;case 'KeyH':sound.start();sound.horn();break;case 'KeyC':game.camera=cameraModes[(cameraModes.indexOf(game.camera)+1)%cameraModes.length];$('camera').value=game.camera;break;case 'KeyP':togglePause();break;}
+  switch(e.code){case 'KeyO':toggleDoor();break;case 'KeyE':board();break;case 'KeyT':ticket();break;case 'KeyR':togglePoles();break;case 'KeyH':sound.start();sound.horn();break;case 'KeyC':game.camera=cameraModes[(cameraModes.indexOf(game.camera)+1)%cameraModes.length];$('camera').value=game.camera;break;case 'KeyF':refuel();break;case 'KeyP':togglePause();break;}
 });
 window.addEventListener('keyup',e=>{if(codeKeys[e.code])keys[codeKeys[e.code]]=false});window.addEventListener('blur',()=>Object.keys(keys).forEach(k=>keys[k]=false));
 document.querySelectorAll('[data-hold]').forEach(el=>{const key=el.dataset.hold;
