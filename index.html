@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#09111e"/>
+<meta name="description" content="Спотер Рівне 3D — браузерний симулятор тролейбуса 107 та маршрутки 38/38А. Фото транспорту, салон, зупинки, звуки, день, ніч і погода."/>
+<title>СПОТЕР РІВНЕ 3D — тролейбус 107 та маршрутка 38</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a2130'/%3E%3Ctext y='.82em' x='5' font-size='49'%3E%F0%9F%9A%8E%3C/text%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="identity"><div class="symbol">🚎</div><div><div class="brand">СПОТЕР <span>РІВНЕ 3D</span></div><div class="byline">Твій симулятор міського транспорту • версія 3.0</div></div></div>
+    <div class="top-actions"><span class="live"><i></i> 3D • SIMULATOR</span><button id="helpBtn" class="quiet" type="button">❔ Інструкція</button><button id="fullBtn" class="quiet" type="button">⛶ На весь екран</button></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <section class="panel chooser">
+        <div class="eyebrow">ДЕПО / ГАРАЖ</div><h2>Обери свій транспорт</h2>
+        <button class="vehicle active" data-vehicle="trolley" aria-pressed="true"><img src="assets/trolley-107-exterior.jpg" alt="Тролейбус №107 на вулиці Рівного"><div><strong>🚎 Тролейбус №107</strong><small>Škoda 14Tr • синьо-білий</small><span class="vm">Вид із кабіни та салону</span></div></button>
+        <button class="vehicle" data-vehicle="bus" aria-pressed="false"><img src="assets/marshrutka-38-front.jpg" alt="Маршрутка №38, жовтий автобус"><div><strong>🚌 Маршрутка №38 / 38А</strong><small>Жовтий автобус • ВК 1337 АА</small><span class="vm">Реальні фотографії з твого набору</span></div></button>
+        <div class="form-grid">
+          <label>Напрямок<select id="direction"><option value="forward">Туди →</option><option value="backward">Назад ←</option></select></label>
+          <label>Камера<select id="camera"><option value="driver">👀 Кабіна водія</option><option value="chase">🎥 Позаду транспорту</option><option value="side">🚎 Збоку, як спотер</option><option value="cabin">💺 Салон пасажира</option></select></label>
+          <label>Погода<select id="weather"><option value="sun">☀️ Сонячно</option><option value="rain">🌧️ Дощ</option><option value="snow">❄️ Сніг</option></select></label>
+          <label>Час доби<select id="daytime"><option value="day">☀️ День</option><option value="night">🌙 Ніч</option></select></label>
+        </div>
+        <button id="start" class="primary" type="button">▶️ ПОЧАТИ РЕЙС</button>
+      </section>
+      <section class="panel stats">
+        <div class="eyebrow">ТВОЇ РЕЗУЛЬТАТИ</div>
+        <div class="stats-grid"><div class="metric"><small>Пасажирів</small><strong id="people">0</strong></div><div class="metric"><small>Квитків</small><strong id="tickets">0</strong></div><div class="metric"><small>Заробіток</small><strong id="money">0 ₴</strong></div><div class="metric"><small>Зупинок</small><strong id="done">0 / 14</strong></div></div>
+      </section>
+      <section class="panel route-panel">
+        <div class="eyebrow">МАРШРУТНИЙ ЛИСТ</div><h3 id="routeTitle">Північний → Боярка</h3>
+        <div id="stopList" class="stop-list"></div>
+      </section>
+      <section class="panel photo-panel">
+        <div class="eyebrow">ФОТО З ОРИГІНАЛУ</div><h3>Як виглядає транспорт</h3>
+        <div class="gallery"><img id="photoMain" src="assets/trolley-107-exterior.jpg" alt="Фото транспорту"><img id="photoInterior" src="assets/trolley-107-interior.jpg" alt="Фото салону"></div>
+        <p class="note">Фото — ті, які ти надіслав. 3D-модель у грі відтворена спрощено, вручну кодом.</p>
+      </section>
+    </aside>
+    <main class="stage">
+      <section class="gameframe" id="frame">
+        <div id="threeMount" aria-label="3D ігровий простір"></div>
+        <div class="sky-gradient"></div>
+        <div class="hud top-left">
+          <div class="speed-box"><div id="speed" class="speed">00</div><div class="smaller">КМ / ГОД</div><div class="speed-track"><span id="speedBar"></span></div></div>
+          <div class="next-stop"><div class="smallcaps">НАСТУПНА ЗУПИНКА</div><strong id="nextStop">м/н Північний</strong><div class="dist" id="distance">0 м</div></div>
+        </div>
+        <div class="hud top-right"><div class="clock-card"><div id="clock">13:07</div><div id="condition">☀️ День</div></div><div class="state-pills"><span id="doorBadge">🚪 Двері зачинені</span><span id="poleBadge">⚡ Штанги піднято</span></div></div>
+        <div class="minimap-wrap"><div class="map-label">📍 СХЕМА МАРШРУТУ <span>• GPS</span></div><canvas id="mini" width="300" height="170" aria-label="Схематична мінікарта маршруту"></canvas><div class="map-caption">Спрощене 3D-місто, не супутникова карта Рівного</div></div>
+        <div class="announcement" id="announcer"><span class="ann-icon">🔊</span><div><small>ГОЛОСОВЕ ОГОЛОШЕННЯ</small><strong id="announcement">Ласкаво просимо до симулятора!</strong></div></div>
+        <div class="status" id="status">Обери машину та натисни «Почати рейс».</div>
+        <div class="landing" id="landing"><div class="landing-card"><div class="landing-kicker">3D CITY TRANSPORT SIMULATOR</div><h1>ВІДЧУЙ СЕБЕ<br/><span>ВОДІЄМ РІВНОГО</span></h1><p>Кабіна від першої особи, пасажири, оплата проїзду, двері, штанги, погода та оголошення українською. Обери тролейбус 107 або маршрутку 38/38А.</p><button id="heroStart" class="primary" type="button">🚎 СІСТИ ЗА КЕРМО</button><div class="landing-tip">Керування: W / S — газ і гальма • A / D — кермо • O — двері • E — посадка</div></div></div>
+        <div class="loading" id="loading" hidden><div class="spinner"></div><strong>Завантажуємо 3D-сцену…</strong><small id="loadHint">Гра працює без зовнішніх 3D-бібліотек.</small></div>
+      </section>
+      <section class="control-strip" aria-label="Пульт керування">
+        <div class="control-group drive"><button data-hold="left" title="Поворот ліворуч">↶<small>Ліворуч</small></button><button data-hold="gas" class="go" title="Газ">▲<small>ГАЗ</small></button><button data-hold="brake" title="Гальма / задній хід">▼<small>ГАЛЬМА</small></button><button data-hold="right" title="Поворот праворуч">↷<small>Праворуч</small></button></div>
+        <div class="control-group utilities"><button id="doorBtn" type="button">🚪<small>Двері [O]</small></button><button id="boardBtn" type="button">👥<small>Посадка [E]</small></button><button id="ticketBtn" type="button">🎫<small>Квиток [T]</small></button><button id="hornBtn" type="button">📣<small>Сигнал [H]</small></button><button id="poleBtn" type="button">⚡<small>Штанги [R]</small></button><button id="pauseBtn" type="button">⏸<small>Пауза [P]</small></button></div>
+      </section>
+      <section class="tips"><strong>Порада:</strong> на початковій зупинці відкрий двері <kbd>O</kbd>, натисни <kbd>E</kbd> для посадки, потім зачини двері та рушай <kbd>W</kbd>. <kbd>C</kbd> перемикає камеру. Звук активується після натискання кнопки запуску. <a href="https://www.openstreetmap.org/#map=13/50.6199/26.2516" target="_blank" rel="noopener noreferrer">Справжня карта Рівного ↗</a></section>
+    </main>
+  </div>
+  <footer>Спотер Рівне 3D • неофіційний навчальний ігровий прототип • одиночна гра • схематичне місто без GPS-трансляції</footer>
+</div>
+<dialog id="help"><div class="dialog-inner"><div class="modal-head"><h2>Як керувати транспортом</h2><button id="closeHelp" class="quiet" type="button">✕</button></div><p>Це браузерна 3D-гра: їзди вулицею, оголошуй наступні зупинки, зупиняйся та саджай пасажирів. На телефоні використовуй кнопки під грою.</p><div class="help-grid"><div><kbd>W</kbd> Газ</div><div><kbd>S</kbd> Гальма / назад</div><div><kbd>A</kbd>/<kbd>D</kbd> Повернути</div><div><kbd>O</kbd> Відкрити / закрити двері</div><div><kbd>E</kbd> Посадка на зупинці</div><div><kbd>T</kbd> Продати квиток</div><div><kbd>R</kbd> Штанги тролейбуса</div><div><kbd>C</kbd> Змінити камеру</div><div><kbd>H</kbd> Сигнал</div><div><kbd>P</kbd> Пауза</div></div><p class="note">Після початку рейсу відпрацьовуй зупинки за порядком; на кінцевій натисни «Назад» і «Почати рейс». Звуки двигуна, дверей і штанг моделюються аудіосинтезом, а назви зупинок читає голосовий рушій браузера (український голос залежить від системи).</p></div></dialog>
+<script defer src="main.js"></script>
+</body>
+</html>
